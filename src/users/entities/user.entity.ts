@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -39,6 +40,7 @@ export class UserEntity {
   })
   password: string;
 
+  @Index()
   @Exclude()
   @Column({ type: 'varchar', nullable: true })
   refreshToken: string | null;
