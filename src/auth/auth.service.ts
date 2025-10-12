@@ -1,10 +1,16 @@
-import { Body, ConflictException, Injectable } from '@nestjs/common';
+import {
+  Body,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,9 +20,32 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  //   async login(@Body() loginDto: LoginDto) {
-  //     return await this.usersService.createUser(loginDto);
-  //   }
+  async login(@Body() loginDto: LoginDto) {
+    const existingUser = await this.usersService.getUserByEmail(loginDto.email);
+
+    const isPasswordMatched = await this.compareHash(
+      loginDto.password,
+      existingUser.password,
+    );
+
+    if (!isPasswordMatched) {
+      throw new UnauthorizedException('Password not valid');
+    }
+
+    const tokens = await this.generateToken(existingUser);
+
+    const hashedRefreshToken = await this.generateHash(tokens.refreshToken);
+
+    await this.usersService.updateRefreshToken(
+      existingUser.id,
+      hashedRefreshToken,
+    );
+
+    return {
+      data: existingUser,
+      tokens,
+    };
+  }
 
   async register(@Body() registerDto: CreateUserDto) {
     const hashedPassword = await this.generateHash(registerDto.password);
