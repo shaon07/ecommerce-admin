@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
-  Body,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -11,6 +14,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refreshToken.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +24,7 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async login(@Body() loginDto: LoginDto) {
+  async login(loginDto: LoginDto) {
     const existingUser = await this.usersService.getUserByEmail(loginDto.email);
 
     const isPasswordMatched = await this.compareHash(
@@ -47,7 +51,7 @@ export class AuthService {
     };
   }
 
-  async register(@Body() registerDto: CreateUserDto) {
+  async register(registerDto: CreateUserDto) {
     const hashedPassword = await this.generateHash(registerDto.password);
 
     const user = await this.usersService.createUser({
@@ -70,6 +74,39 @@ export class AuthService {
       data: user,
       tokens,
     };
+  }
+
+  async refreshToken(refreshTokenDto: RefreshTokenDto) {
+    try {
+      const decoded = this.jwtService.verify(refreshTokenDto.refreshToken, {
+        secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
+      });
+
+      const user = await this.usersService.getUser(decoded['id']);
+
+      if (!user.refreshToken) {
+        throw new UnauthorizedException('Unauthorize user');
+      }
+
+      const isTokenValid = await this.compareHash(
+        refreshTokenDto.refreshToken,
+        user.refreshToken,
+      );
+
+      if (!isTokenValid) {
+        throw new UnauthorizedException('Invalid user token');
+      }
+
+      const tokens = await this.generateToken(user);
+
+      const hashedRefreshToken = await this.generateHash(tokens.refreshToken);
+
+      await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
+
+      return tokens;
+    } catch {
+      throw new UnauthorizedException('Token is not valid');
+    }
   }
 
   private async generateToken(user: UserEntity) {
@@ -104,7 +141,7 @@ export class AuthService {
         id: user.id,
       },
       {
-        secret: this.configService.get<string>('ACCESS_TOKEN_SECRET'),
+        secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
         expiresIn: '1d',
       },
     );
