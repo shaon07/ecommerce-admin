@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -42,7 +43,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return plainToInstance(UserEntity, user);
   }
 
   async getUserByEmail(email: string): Promise<UserEntity> {
@@ -56,7 +57,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return plainToInstance(UserEntity, user);
   }
 
   async getAllUsers(): Promise<UserEntity[]> {
