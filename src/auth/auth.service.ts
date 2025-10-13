@@ -76,6 +76,20 @@ export class AuthService {
     };
   }
 
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserEntity | null> {
+    const user = await this.usersService.getUserByEmail(email);
+    const isPasswordMatched = await this.compareHash(password, user.password);
+
+    if (!isPasswordMatched) {
+      return null;
+    }
+
+    return user;
+  }
+
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     try {
       const decoded = this.jwtService.verify(refreshTokenDto.refreshToken, {
