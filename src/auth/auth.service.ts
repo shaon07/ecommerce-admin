@@ -123,6 +123,14 @@ export class AuthService {
     }
   }
 
+  async logout(user: UserEntity): Promise<null> {
+    const existingUser = await this.usersService.getUserByEmail(user.email);
+
+    await this.usersService.updateRefreshToken(existingUser.id, null);
+
+    return null;
+  }
+
   private async generateToken(user: UserEntity) {
     const accessToken = await this.generateAccessToken(user);
     const refreshToken = await this.generateRefreshToken(user);
