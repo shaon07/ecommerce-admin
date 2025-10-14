@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Body,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -72,5 +76,20 @@ export class UsersService {
         refreshToken: token,
       },
     );
+  }
+
+  async updatePassword(email: string, hashedPassword: string) {
+    try {
+      const user = await this.getUserByEmail(email);
+
+      user.password = hashedPassword;
+
+      return await this.userRepository.save(user);
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Interval Server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
