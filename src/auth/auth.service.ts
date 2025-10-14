@@ -3,7 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import {
+  BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,6 +16,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
+import { ForgotPasswordDto } from './dto/forgorPassword.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refreshToken.dto';
 
@@ -129,6 +133,30 @@ export class AuthService {
     await this.usersService.updateRefreshToken(existingUser.id, null);
 
     return null;
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    if (forgotPasswordDto.password !== forgotPasswordDto.confirmPassword) {
+      throw new BadRequestException('password and confirm not matched');
+    }
+
+    const hashedPassword = await this.generateHash(forgotPasswordDto.password);
+
+    const user = await this.usersService.updatePassword(
+      forgotPasswordDto.email,
+      hashedPassword,
+    );
+
+    if (!user) {
+      throw new HttpException(
+        'There is a problem while update password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return {
+      message: 'password updated successfully',
+    };
   }
 
   private async generateToken(user: UserEntity) {
