@@ -8,8 +8,11 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorators';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserEntity } from './entities/user.entity';
+import { USER_ROLE } from './enums/roles.enum';
 import { UsersService } from './users.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,7 +32,8 @@ export class UsersController {
     return await this.usersService.getUser(id);
   }
 
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(USER_ROLE.ADMIN)
   @Get()
   async getAllUsers(): Promise<UserEntity[]> {
     return await this.usersService.getAllUsers();
