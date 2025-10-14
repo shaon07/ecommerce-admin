@@ -4,6 +4,9 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Get,
+  HttpException,
+  HttpStatus,
   Post,
   Request,
   UseGuards,
@@ -32,10 +35,20 @@ export class AuthController {
     return await this.authService.login(loginDto);
   }
 
-  @Post('logout')
+  @Get('logout')
   @UseGuards(JwtGuard)
   async logout(@Request() request) {
-    return await this.authService.logout(request['user']);
+    try {
+      await this.authService.logout(request['user']);
+      return {
+        message: 'user logout successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Internal Server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('refresh-token')
