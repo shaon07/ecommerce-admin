@@ -57,7 +57,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return plainToInstance(UserEntity, user);
+    return user;
   }
 
   async getAllUsers(): Promise<UserEntity[]> {
