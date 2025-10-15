@@ -22,14 +22,20 @@ export class UsersService {
 
   async createUser(@Body() createUserDto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({
-      where: {
-        email: createUserDto.email,
-        username: createUserDto.username,
-      },
+      where: [
+        {
+          email: createUserDto.email,
+        },
+        {
+          username: createUserDto.username,
+        },
+      ],
     });
 
     if (existingUser) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException(
+        `User with this ${createUserDto.email === existingUser.email ? 'email' : 'username'} already exists`,
+      );
     }
     const user = this.userRepository.create(createUserDto);
     return await this.userRepository.save(user);
