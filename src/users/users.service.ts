@@ -11,6 +11,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -94,6 +95,23 @@ export class UsersService {
     } catch (error) {
       throw new HttpException(
         error?.message || 'Interval Server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateUser(
+    updateUserDto: UpdateUserDto,
+    userId: string,
+  ): Promise<UserEntity> {
+    const existingUser = await this.getUser(userId);
+
+    try {
+      Object.assign(existingUser, updateUserDto);
+      return await this.userRepository.save(existingUser);
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'there was a problem while updating user info',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
