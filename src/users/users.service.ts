@@ -11,6 +11,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -22,14 +23,20 @@ export class UsersService {
 
   async createUser(@Body() createUserDto: CreateUserDto) {
     const existingUser = await this.userRepository.findOne({
-      where: {
-        email: createUserDto.email,
-        username: createUserDto.username,
-      },
+      where: [
+        {
+          email: createUserDto.email,
+        },
+        {
+          username: createUserDto.username,
+        },
+      ],
     });
 
     if (existingUser) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException(
+        `User with this ${createUserDto.email === existingUser.email ? 'email' : 'username'} already exists`,
+      );
     }
     const user = this.userRepository.create(createUserDto);
     return await this.userRepository.save(user);
@@ -88,6 +95,23 @@ export class UsersService {
     } catch (error) {
       throw new HttpException(
         error?.message || 'Interval Server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateUser(
+    updateUserDto: UpdateUserDto,
+    userId: string,
+  ): Promise<UserEntity> {
+    const existingUser = await this.getUser(userId);
+
+    try {
+      Object.assign(existingUser, updateUserDto);
+      return await this.userRepository.save(existingUser);
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'there was a problem while updating user info',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
