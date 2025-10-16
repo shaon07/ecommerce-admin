@@ -116,4 +116,32 @@ export class UsersService {
       );
     }
   }
+
+  async softDeleteUser(userId: string) {
+    const user = await this.getUser(userId);
+
+    try {
+      await this.userRepository.softDelete({ id: user.id });
+      return { message: 'user deleted successfully' };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'there was a problem while deleting user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async deleteUser(userId: string) {
+    const user = await this.getUser(userId);
+
+    try {
+      await this.userRepository.delete({ id: user.id });
+      return { message: 'user deleted successfully' };
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'there was an problem while deleting this user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

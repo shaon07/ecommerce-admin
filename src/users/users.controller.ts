@@ -5,14 +5,15 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
   Patch,
-  Request,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorators';
 import { Roles } from 'src/auth/decorators/roles.decorators';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -28,8 +29,8 @@ export class UsersController {
 
   @UseGuards(JwtGuard)
   @Get('me')
-  getMe(@Request() request) {
-    return request['user'];
+  getMe(@CurrentUser() user) {
+    return user;
   }
 
   @Get(':id')
@@ -46,10 +47,20 @@ export class UsersController {
 
   @UseGuards(JwtGuard)
   @Patch()
-  async updateUser(@Body() updateUserDto: UpdateUserDto, @Request() request) {
-    return await this.usersService.updateUser(
-      updateUserDto,
-      request['user'].id,
-    );
+  async updateUser(@Body() updateUserDto: UpdateUserDto, @CurrentUser() user) {
+    return await this.usersService.updateUser(updateUserDto, user.id);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(USER_ROLE.ADMIN)
+  @Delete('soft-delete/:id')
+  async softDeleteUser(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.softDeleteUser(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('delete/:id')
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.deleteUser(id);
   }
 }
