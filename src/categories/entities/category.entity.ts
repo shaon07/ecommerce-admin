@@ -1,8 +1,10 @@
+import { ProductEntity } from 'src/products/entities/product.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -17,6 +19,9 @@ export class CategoryEntity {
 
   @Column({ type: 'varchar', length: 50, unique: true })
   slug: string;
+
+  @ManyToMany(() => ProductEntity, (product) => product.categories)
+  products: ProductEntity[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createSlug } from 'src/utilies';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './entities/category.entity';
@@ -92,5 +92,15 @@ export class CategoriesService {
     } catch (error) {
       throw new HttpException(error?.message, error?.status);
     }
+  }
+
+  async findByIds(ids: string[]) {
+    const categories = await this.categoryRepository.find({
+      where: {
+        id: In(ids),
+      },
+    });
+
+    return categories;
   }
 }
