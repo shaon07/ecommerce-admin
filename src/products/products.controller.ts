@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -45,5 +46,12 @@ export class ProductsController {
     @Body() updateProductDto: UpdateProductDto,
   ) {
     return await this.productService.updateProduct(id, updateProductDto);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(USER_ROLE.ADMIN)
+  @Delete(':id')
+  async deleteProduct(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.productService.softDeleteProduct(id);
   }
 }

@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -88,5 +91,18 @@ export class ProductsService {
     await this.productRepository.save(existingProduct);
 
     return await this.getProductById(existingProduct.id);
+  }
+
+  async softDeleteProduct(id: string) {
+    const existingUser = await this.getProductById(id);
+
+    try {
+      await this.productRepository.softDelete(existingUser.id);
+      return {
+        message: 'product deleted successfully',
+      };
+    } catch (error) {
+      throw new HttpException(error?.message, error?.status);
+    }
   }
 }
