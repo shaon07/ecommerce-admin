@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesService } from 'src/categories/categories.service';
+import { CategoryEntity } from 'src/categories/entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -53,14 +54,39 @@ export class ProductsService {
   }
 
   async getProducts() {
-    const products = await this.productRepository.find();
+    const products = await this.productRepository.find({
+      relations: ['categories'],
+    });
 
     return products;
   }
 
-  async updateProduct(updateProductDto: UpdateProductDto) {
-    const validCategoryIds = await this.categoryService.findByIds(
-      updateProductDto.categories || [],
-    );
+  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
+    let validCategoryIds: CategoryEntity[] = [];
+
+    if (
+      Array.isArray(updateProductDto?.categories) &&
+      updateProductDto?.categories?.length > 0
+    ) {
+      validCategoryIds = await this.categoryService.findByIds(
+        updateProductDto.categories || [],
+      );
+
+      if (validCategoryIds.length !== updateProductDto.categories?.length) {
+        throw new BadRequestException('some of categories ids not valid');
+      }
+    }
+
+    const existingProduct = await this.getProductById(id);
+
+    Object.assign(existingProduct, updateProductDto);
+
+    if (validCategoryIds.length > 0) {
+      existingProduct.categories = validCategoryIds;
+    }
+
+    await this.productRepository.save(existingProduct);
+
+    return await this.getProductById(existingProduct.id);
   }
 }

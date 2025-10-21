@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { USER_ROLE } from 'src/users/enums/roles.enum';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -33,5 +35,15 @@ export class ProductsController {
   @Get(':id')
   async getProduct(@Param('id', ParseUUIDPipe) id: string) {
     return await this.productService.getProductById(id);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(USER_ROLE.ADMIN)
+  @Patch(':id')
+  async updateProduct(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    return await this.productService.updateProduct(id, updateProductDto);
   }
 }
