@@ -3,6 +3,9 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
   UseInterceptors,
@@ -14,6 +17,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { USER_ROLE } from 'src/users/enums/roles.enum';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersService } from './orders.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -34,5 +38,15 @@ export class OrdersController {
     @CurrentUser() user: UserEntity,
   ) {
     return await this.orderService.createOrder(createOrderDto, user.id);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(USER_ROLE.ADMIN)
+  @Patch(':id')
+  async updateOrderStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ) {
+    return await this.orderService.updateOrderStatus(id, updateOrderDto);
   }
 }

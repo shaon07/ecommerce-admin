@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/products/entities/product.entity';
 import { In, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderEntity } from './entities/order.entity';
 import { OrderItem } from './entities/orderItem.entity';
 
@@ -23,6 +24,9 @@ export class OrdersService {
   async getAllOrders() {
     return await this.orderRepository.find({
       relations: ['user', 'orderItems'],
+      order: {
+        updatedAt: 'DESC',
+      },
     });
   }
 
@@ -84,5 +88,17 @@ export class OrdersService {
     const currentOrder = await this.orderRepository.save(order);
 
     return await this.getOrder(currentOrder.id);
+  }
+
+  async updateOrderStatus(orderId: string, statusDto: UpdateOrderDto) {
+    const order = await this.getOrder(orderId);
+
+    this.orderRepository.merge(order, {
+      status: statusDto.status,
+    });
+
+    await this.orderRepository.save(order);
+
+    return order;
   }
 }
