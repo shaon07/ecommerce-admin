@@ -1,10 +1,12 @@
 import { Exclude } from 'class-transformer';
+import { OrderEntity } from 'src/orders/entities/order.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -52,6 +54,9 @@ export class UserEntity {
     default: USER_ROLE.USER,
   })
   role?: USER_ROLE;
+
+  @OneToMany(() => OrderEntity, (order) => order.user)
+  orders: OrderEntity[];
 
   @CreateDateColumn({
     type: 'timestamp',

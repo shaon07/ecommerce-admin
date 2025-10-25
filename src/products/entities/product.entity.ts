@@ -19,11 +19,11 @@ export class ProductEntity {
   @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   price: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  stock?: number;
+  stock: number;
 
   @Column({
     type: 'enum',
