@@ -8,11 +8,12 @@ import {
   HttpException,
   HttpStatus,
   Post,
-  Request,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { UserEntity } from 'src/users/entities/user.entity';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorators';
 import { ForgotPasswordDto } from './dto/forgorPassword.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refreshToken.dto';
@@ -38,9 +39,9 @@ export class AuthController {
 
   @Get('logout')
   @UseGuards(JwtGuard)
-  async logout(@Request() request) {
+  async logout(@CurrentUser() user: UserEntity) {
     try {
-      await this.authService.logout(request['user']);
+      await this.authService.logout(user);
       return {
         message: 'user logout successfully',
       };
