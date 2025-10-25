@@ -22,11 +22,22 @@ export class OrdersService {
   ) {}
 
   async getAllOrders() {
-    return await this.orderRepository.find({
+    const orders = await this.orderRepository.find({
       relations: ['user', 'orderItems'],
       order: {
         updatedAt: 'DESC',
       },
+    });
+
+    return orders.map((order) => {
+      const total = order.orderItems.reduce((sum, item) => {
+        return sum + item.price * item.quantity;
+      }, 0);
+
+      return {
+        ...order,
+        total,
+      };
     });
   }
 
