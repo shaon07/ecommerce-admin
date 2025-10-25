@@ -33,6 +33,13 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(USER_ROLE.USER)
+  @Get('/orders')
+  async getOrderDetails(@CurrentUser() user: UserEntity) {
+    return await this.usersService.getOrderDetail(user.id);
+  }
+
   @Get(':id')
   async getUser(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.getUser(id);

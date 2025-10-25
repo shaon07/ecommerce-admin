@@ -9,6 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { OrderEntity } from 'src/orders/entities/order.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,6 +20,9 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+
+    @InjectRepository(OrderEntity)
+    private OrderRepository: Repository<OrderEntity>,
   ) {}
 
   async createUser(@Body() createUserDto: CreateUserDto) {
@@ -143,5 +147,32 @@ export class UsersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async getOrderDetail(userId: string) {
+    const orders = await this.OrderRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+      relations: {
+        orderItems: true,
+      },
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
+
+    return orders.map((product) => {
+      const total = product.orderItems.reduce((sum, item) => {
+        return sum + item.price * item.quantity;
+      }, 0);
+
+      return {
+        ...product,
+        total,
+      };
+    });
   }
 }
