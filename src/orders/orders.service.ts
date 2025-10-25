@@ -45,7 +45,7 @@ export class OrdersService {
     return order;
   }
 
-  async createOrder(createOrderDto: CreateOrderDto, userId: string) {
+  async createOrder(userId: string, createOrderDto: CreateOrderDto) {
     const productIds = createOrderDto.products.map(
       (product) => product.productId,
     );

@@ -37,7 +37,7 @@ export class OrdersController {
     @Body() createOrderDto: CreateOrderDto,
     @CurrentUser() user: UserEntity,
   ) {
-    return await this.orderService.createOrder(createOrderDto, user.id);
+    return await this.orderService.createOrder(user.id, createOrderDto);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
